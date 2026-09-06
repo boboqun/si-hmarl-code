@@ -21,7 +21,7 @@ def save_fig2():
     n = len(all_topo)
     cols = 4
     rows = math.ceil(n / cols)
-    fig, axes = plt.subplots(rows, cols, figsize=(16, 8))
+    fig, axes = plt.subplots(rows, cols, figsize=(8, 5.2))
     axes = axes.flatten()
 
     for idx, topo in enumerate(all_topo):
@@ -59,7 +59,7 @@ def save_fig2():
         ax.plot([wps[-1][0], END_REF[0]], [wps[-1][1], END_REF[1]], '--', color='red', alpha=0.6)
 
         tag = f"{'★ Optimal: ' if is_best else ''}{topo['direction'].capitalize()}"
-        tag += f"\nRev={topo['strip_rev']} | StartHigh={topo['start_high']}"
+        tag += f"\nRev={topo['strip_rev']}\nStartHigh={topo['start_high']}"
         ax.set_title(f"{tag}\nCost = {cost:.1f} m", fontsize=10,
                      color='darkred' if is_best else 'black',
                      fontweight='bold' if is_best else 'normal')
@@ -69,6 +69,7 @@ def save_fig2():
     plt.tight_layout()
     os.makedirs('../../paper_figures', exist_ok=True)
     plt.rcParams['pdf.fonttype'] = 42
+    plt.rcParams['font.size'] = 11
     plt.savefig('../../paper_figures/fig2_boustrophedon.png', dpi=300, bbox_inches='tight')
     plt.savefig('../../paper_figures/fig2_boustrophedon.pdf', bbox_inches='tight')
     print("Saved ../../paper_figures/fig2_boustrophedon.png")

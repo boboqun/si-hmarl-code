@@ -18,7 +18,7 @@ os.makedirs(PLOTS_DIR, exist_ok=True)
 # Identical figure size and element width across all three comparison figures so
 # that bars and boxes read at the same visual width (previously 0.55 bar vs 0.45
 # box, and 6 vs 7 categories, which made the widths look inconsistent).
-FIGSIZE = (7.2, 4.4)
+FIGSIZE = (7.2, 3.4)
 ELEM_W  = 0.6
 
 PALETTE = {
@@ -54,7 +54,7 @@ def _na_marker(ax, idx, label="N/A\n(no coverage)"):
     """Keep the MAPPO slot present (for consistent category widths) but mark it N/A."""
     y0, y1 = ax.get_ylim()
     ax.text(idx, y0 + (y1 - y0) * 0.04, label, ha='center', va='bottom',
-            fontsize=7, style='italic', color='#999999', zorder=5)
+            fontsize=8.5, style='italic', color='#999999', zorder=5)
 
 
 def _style_xaxis(ax, algos):
@@ -65,6 +65,8 @@ def _style_xaxis(ax, algos):
 
 def plot_academic_charts(df):
     apply_plot_style()
+    plt.rcParams.update({'font.size': 10.5, 'axes.labelsize': 10.5, 'xtick.labelsize': 9.5,
+                         'ytick.labelsize': 9.5, 'legend.fontsize': 9.5})
     algos = list(PALETTE.keys())
     colors = list(PALETTE.values())
     mappo_idx = algos.index("MAPPO\nFlat")
@@ -86,7 +88,7 @@ def plot_academic_charts(df):
         h = b.get_height()
         ax.text(b.get_x() + b.get_width() / 2, h + std + ymax * 0.03,
                 f"{round(h):,}", ha='center', va='bottom', fontweight='bold',
-                fontsize=8, color='#111111')
+                fontsize=9, color='#111111')
     ax.set_ylabel("Execution Steps (Makespan)", fontweight='bold')
     _style_xaxis(ax, algos)
     format_ax(ax)
@@ -142,7 +144,7 @@ def plot_academic_charts(df):
         t = a + b
         if not np.isnan(t):
             ax.text(x[i], t + ymax * 0.02, f"{round(t):,}", ha='center', va='bottom',
-                    fontweight='bold', fontsize=8, color='#111111')
+                    fontweight='bold', fontsize=9, color='#111111')
     ax.set_ylabel("Total Wasted Flight Distance (meters)", fontweight='bold')
     _style_xaxis(ax, algos)
     ax.legend(loc='upper left', framealpha=0.9)

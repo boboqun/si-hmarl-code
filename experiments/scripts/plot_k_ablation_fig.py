@@ -4,11 +4,12 @@ other bar charts (serif fonts, hatched black-edged bars, unified width, value
 labels, signature blue for the chosen K=5). Panels follow the caption:
 (a) global makespan, (b) deadhead distance, (c) task success rate.
 
-Data are the paper's reported values: makespan/success from the D2 text (which
-reuse the main SI-HMARL checkpoint at K=5), and deadhead means from
-experiments/results_ablation/k_ablation_eval_v2.csv (11,934 m at K=4); the K=5
-deadhead is the main-table value (3,792 m) for consistency with the rest of the
-paper. Hardcoded so it regenerates anywhere.
+Data (2026-09-04) are the deterministic-policy evaluation (explore=False, seeds
+1001-1010, the protocol of every main-text comparison) from
+experiments/results_ablation/k_ablation_eval_v2_det.csv; the K=5 row reproduces
+the main-table values (6,472 +- 214 ticks, 3,792 m). K>=6 time out on every
+seed, so their deadhead reflects stalled rather than efficient flight and is
+annotated as incomplete. Hardcoded so it regenerates anywhere.
 """
 import os
 import sys
@@ -26,14 +27,15 @@ ELEM_W = 0.8
 K_LABELS  = ["4×4", "5×5", "6×6", "7×7", "8×8"]
 HERO_IDX  = 1  # K = 5
 
-MAKESPAN     = [6726, 6472, 25609, 30000, 30000]
-MAKESPAN_STD = [ 148,  214,  9258,     0,     0]
-DEADHEAD     = [11934,  3792, 36430, 41497, 43183]   # deadhead (m); K5 from main table (3,792), others v2-eval means
-SUCCESS      = [100, 100, 20, 0, 0]
+MAKESPAN     = [6740, 6472, 30000, 30000, 30000]
+MAKESPAN_STD = [ 323,  214,     0,     0,     0]
+DEADHEAD     = [15317,  3792,  6913,  2600,  5623]   # deadhead (m), deterministic eval; K>=6 time out and are omitted from the panel
+SUCCESS      = [100, 100, 0, 0, 0]
 
 HERO = "#2878B5"
 OTHER = "#659266"
-TIMEOUT = {2: "", 3: "timeout", 4: "timeout"}  # K6 partial, K7/K8 full timeout
+TIMEOUT = {2: "timeout", 3: "timeout", 4: "timeout"}  # K6/K7/K8 time out on all seeds
+INCOMPLETE = {2: "incomplete", 3: "incomplete", 4: "incomplete"}
 
 
 def _colors():
@@ -44,7 +46,9 @@ def _hatches():
     return ['xx' if i == HERO_IDX else '//' for i in range(len(K_LABELS))]
 
 
-def _bars(ax, vals, std, title, ylabel, fmt="{:,}", annotate_timeout=False):
+def _bars(ax, vals, std, title, ylabel, fmt="{:,}", annotate_timeout=False, labels=None, omit=()):
+    labels = labels if labels is not None else TIMEOUT
+    vals = [0 if i in omit else v for i, v in enumerate(vals)]
     x = np.arange(len(K_LABELS))
     bars = ax.bar(x, vals, width=ELEM_W, color=_colors(), edgecolor='black',
                   linewidth=1.0, alpha=0.85, zorder=3)
@@ -57,10 +61,15 @@ def _bars(ax, vals, std, title, ylabel, fmt="{:,}", annotate_timeout=False):
     ax.set_ylim(0, ymax * 1.20)
     for xi, v in enumerate(vals):
         s = std[xi] if std else 0
+        if xi in omit:
+            if xi == min(omit):
+                ax.text(float(np.mean(list(omit))), ymax * 0.06, "$K\\geq6$: timeout,\ndeadhead omitted",
+                        ha='center', va='bottom', fontsize=6.5, style='italic', color='#444444', zorder=5)
+            continue
         ax.text(xi, v + s + ymax * 0.02, fmt.format(int(v)), ha='center', va='bottom',
                 fontweight='bold', fontsize=7.5, color='#111111')
-        if annotate_timeout and TIMEOUT.get(xi):
-            ax.text(xi, v * 0.5, TIMEOUT[xi], ha='center', va='center', rotation=90,
+        if annotate_timeout and labels.get(xi):
+            ax.text(xi, v * 0.5, labels[xi], ha='center', va='center', rotation=90,
                     fontsize=6.5, style='italic', color='white', zorder=5)
     ax.set_xticks(x)
     ax.set_xticklabels(K_LABELS, fontweight='bold')
@@ -76,7 +85,7 @@ def main():
     fig, axes = plt.subplots(1, 3, figsize=(7.16, 2.9))
     _bars(axes[0], MAKESPAN, MAKESPAN_STD, "(a) Global makespan", "Makespan (ticks)",
           annotate_timeout=True)
-    _bars(axes[1], DEADHEAD, None, "(b) Deadhead distance", "Distance (m)")
+    _bars(axes[1], DEADHEAD, None, "(b) Deadhead distance", "Distance (m)", omit=(2, 3, 4))
     _bars(axes[2], SUCCESS, None, "(c) Task success rate", "Success (%)", fmt="{}%")
     axes[2].set_ylim(0, 118)
 

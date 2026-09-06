@@ -24,8 +24,8 @@ HERO = "#2878B5"
 
 # makespan defined only where coverage completes (up to 7 km)
 SCALE_MS = [0.5, 1, 2, 3, 4, 5, 6, 7]
-MS_MEAN  = [596, 1893, 6472, 15259, 22918, 39646, 51939, 82562]
-MS_STD   = [18, 39, 214, 321, 616, 1752, 2658, 11238]
+MS_MEAN  = [596, 1893, 6427, 15259, 23142, 39646, 51939, 82562]
+MS_STD   = [18, 39, 211, 321, 1116, 1752, 2658, 11238]
 # success across the full envelope
 SCALE_SR = [0.5, 1, 2, 3, 4, 5, 6, 7, 8]
 SUCCESS  = [100, 100, 100, 100, 100, 100, 100, 70, 0]

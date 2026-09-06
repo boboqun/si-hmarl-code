@@ -66,6 +66,33 @@ def load_data():
     df = df[df["Scale"] != "4x (8000m)"]
     df["Algorithm"] = df["Algorithm"].str.replace("SA-HMARL", "SI-HMARL", regex=False)
     df["Algorithm"] = df["Algorithm"].str.replace("Porcelli CACPP", "Porcelli", regex=False)
+    # 2 km rows: take the main-table source (performance_metrics.csv, seeds 1001-1010,
+    # deterministic policy) so the 2 km bars reproduce Table 3 of the manuscript.
+    pm_path = os.path.join(RESULTS_DIR, "performance_metrics.csv")
+    if os.path.exists(pm_path):
+        pm = pd.read_csv(pm_path)
+        pm["Algorithm"] = pm["Algorithm"].str.replace("\n", " ", regex=False).str.replace("SA-HMARL", "SI-HMARL", regex=False)
+        name_map = {"Our SI-HMARL": "Our SI-HMARL", "Standard H-MARL": "Standard H-MARL",
+                    "Heuristic MACPP": "Heuristic MACPP", "MAPPO Flat": "MAPPO Flat",
+                    "Porcelli CACPP (Porcelli 2025)": "Porcelli", "AG-CVG (Karapetyan 2024)": "AG-CVG",
+                    "Eker DP (Eker 2025)": "Eker DP"}
+        for src, dst in name_map.items():
+            sub = pm[pm["Algorithm"] == src]
+            if sub.empty:
+                print(f"[!] performance_metrics.csv lacks {src!r}; keeping the primary CSV row")
+                continue
+            ms = sub["Global Makespan"].astype(float)
+            succ = float((ms < 30000).mean() * 100.0)
+            mask = (df["Algorithm"] == dst) & (df["Scale"] == "1x (2000m)")
+            if mask.any():
+                df.loc[mask, "Success Rate (%)"] = succ
+                df.loc[mask, "Makespan Multiplier"] = float(ms.mean()) if succ > 0 else float("nan")
+            else:
+                df = pd.concat([df, pd.DataFrame([{"Algorithm": dst, "Scale": "1x (2000m)",
+                                                   "Success Rate (%)": succ,
+                                                   "Makespan Multiplier": float(ms.mean()) if succ > 0 else float("nan")}])],
+                               ignore_index=True)
+        print("[*] 2 km rows overridden from performance_metrics.csv (seeds 1001-1010)")
     return df
 
 
@@ -125,7 +152,7 @@ def plot_scalability():
                 abs_makespan[algo].append(timeout)
                 is_failed[algo].append(True)
 
-    fig, axes = plt.subplots(1, 2, figsize=(16, 6))
+    fig, axes = plt.subplots(2, 1, figsize=(7.6, 9.2), gridspec_kw={'height_ratios': [1.0, 1.05]})
 
     # ══════════════════════════════════════════════════════════════════════════
     # 左图：分组柱状图 - 绝对完工时间 (Absolute Makespan)
@@ -156,12 +183,12 @@ def plot_scalability():
             if f:
                 # failure: small cross marker
                 ax0.text(cx, bar.get_height() * 1.04, "✕", ha='center', va='bottom',
-                         fontsize=7, color='#b00000', fontweight='bold', zorder=5)
+                         fontsize=8.5, color='#b00000', fontweight='bold', zorder=5)
             else:
                 # success: vertical value label (fits the narrow bars)
                 label = f"{v/1000:.1f}k" if v >= 1000 else f"{int(v)}"
                 ax0.text(cx, bar.get_height() * 1.05, label, ha='center', va='bottom',
-                         fontsize=6, color='#111111', fontweight='bold', rotation=90, zorder=5)
+                         fontsize=7.5, color='#111111', fontweight='bold', rotation=90, zorder=5)
 
     ax0.set_yscale('log')
     ax0.set_ylim(Y_FLOOR, 2.2e5)
@@ -173,7 +200,7 @@ def plot_scalability():
                   fontsize=11, fontweight='bold', pad=8)
     ax0.yaxis.set_major_formatter(ticker.FuncFormatter(
         lambda x, _: (f"{x/1000:.0f}k" if x >= 1000 else f"{int(x)}")))
-    ax0.legend(fontsize=8, framealpha=0.9, loc='upper left', ncol=2,
+    ax0.legend(fontsize=9, framealpha=0.9, loc='upper left', ncol=2,
                columnspacing=0.8, handlelength=1.4, handletextpad=0.4)
     ax0.spines['top'].set_visible(False)
     ax0.spines['right'].set_visible(False)
@@ -243,7 +270,7 @@ def plot_scalability():
     norm = mcolors.Normalize(vmin=1.0, vmax=ratio_max)
 
     # ── Draw cells ────────────────────────────────────────────────────────────
-    cell_h, cell_w = 1.0, 1.6   # height and width of each cell in data units
+    cell_h, cell_w = 0.78, 2.7   # height and width of each cell in data units (two-row layout)
     for i in range(n_rows):
         for j in range(n_cols):
             r = ratio_matrix[i][j]
@@ -283,12 +310,12 @@ def plot_scalability():
             cy = (n_rows - 1 - i) * cell_h + cell_h / 2
 
             # First line: ratio (larger, bold)
-            ax1.text(cx, cy + 0.14, lines[0],
-                     ha="center", va="center", fontsize=13,
+            ax1.text(cx, cy + 0.12, lines[0],
+                     ha="center", va="center", fontsize=12,
                      fontweight="bold", color=txt_color, zorder=4)
             # Second line: success rate (smaller)
-            ax1.text(cx, cy - 0.20, lines[1] if len(lines) > 1 else "",
-                     ha="center", va="center", fontsize=9.5,
+            ax1.text(cx, cy - 0.17, lines[1] if len(lines) > 1 else "",
+                     ha="center", va="center", fontsize=9,
                      color=txt_color, style="italic", zorder=4)
 
     # ── Row labels (algorithm names on the left) ───────────────────────────────
@@ -320,7 +347,7 @@ def plot_scalability():
     # ── Colorbar ──────────────────────────────────────────────────────────────
     sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
     sm.set_array([])
-    cbar = fig.colorbar(sm, ax=ax1, fraction=0.046, pad=0.04, aspect=20)
+    cbar = fig.colorbar(sm, ax=ax1, fraction=0.03, pad=0.02, aspect=25)
     cbar.set_label("Relative Makespan vs. SI-HMARL  (×)", fontsize=10)
     cbar.ax.tick_params(labelsize=9)
     cbar.set_ticks([1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0])
@@ -328,15 +355,14 @@ def plot_scalability():
 
     # ── Axes cosmetics ────────────────────────────────────────────────────────
     ax1.set_xlim(-0.05, n_cols * cell_w + 0.05)
-    ax1.set_ylim(-0.05, n_rows * cell_h + 0.35)
+    ax1.set_ylim(-0.05, n_rows * cell_h + 0.95)
     ax1.axis("off")
     ax1.set_title(
-        "(b) Fixed-Interface Scale Transfer: Performance Heatmap\n"
-        "Color = Relative Makespan  |  Green: Faster  |  White: 1.0x  |  Red: Slower / Fail",
-        fontsize=12, fontweight='bold', pad=14,
+        "(b) Relative makespan vs. SI-HMARL: green faster, white 1.0x, red slower or timeout",
+        fontsize=10.5, fontweight='bold', pad=4,
     )
 
-    plt.tight_layout(pad=2.0)
+    plt.tight_layout(pad=1.2, h_pad=1.0)
     save_path = os.path.join(OUTPUT_DIR, "Fig_5_5_Scalability.pdf")
     plt.savefig(save_path, dpi=600, format='pdf', bbox_inches='tight')
     plt.savefig(save_path.replace(".pdf", ".png"), dpi=200, bbox_inches='tight')

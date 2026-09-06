@@ -28,7 +28,7 @@ def draw_fancy_arrow(ax, start, end, color="#2C3E50", rad=0.2, text="", text_off
                 bbox=dict(facecolor='white', edgecolor='none', alpha=0.8, pad=1))
 
 def draw_hfsm(ax):
-    ax.set_title("(a) Hybrid Finite State Machine", fontsize=14, fontweight='bold', pad=15)
+    ax.set_title("(a) Hierarchical Finite State Machine", fontsize=14, fontweight='bold', pad=15)
     ax.set_xlim(0, 1)
     ax.set_ylim(0, 1)
     ax.set_xticks([])
@@ -57,7 +57,7 @@ def draw_hfsm(ax):
         ax.text(pos[0], pos[1], name, ha='center', va='center', fontsize=13, fontweight='bold', color=color_edge, zorder=4)
         
     # Transitions
-    draw_fancy_arrow(ax, (0.43, 0.75), (0.56, 0.75), color="#E74C3C", rad=0.15, text="Energy < $E_{low}$", text_offset=(0, 0.12))
+    draw_fancy_arrow(ax, (0.43, 0.75), (0.56, 0.75), color="#E74C3C", rad=0.15, text="$E_i < E_{safe}$", text_offset=(0, 0.12))
     draw_fancy_arrow(ax, (0.7, 0.58), (0.58, 0.38), color="#27AE60", rad=0.2, text="Distance $\leq$ Tolerance", text_offset=(0.14, 0.1))
     draw_fancy_arrow(ax, (0.42, 0.38), (0.3, 0.58), color="#2980B9", rad=0.2, text="Energy == $E_{max}$", text_offset=(-0.14, 0.1))
 
