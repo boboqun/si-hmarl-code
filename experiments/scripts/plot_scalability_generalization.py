@@ -182,7 +182,7 @@ def plot_scalability():
             cx = bar.get_x() + bar.get_width() / 2
             if f:
                 # failure: small cross marker
-                ax0.text(cx, bar.get_height() * 1.04, "✕", ha='center', va='bottom',
+                ax0.text(cx, bar.get_height() * 1.04, r"$\times$", ha='center', va='bottom',
                          fontsize=8.5, color='#b00000', fontweight='bold', zorder=5)
             else:
                 # success: vertical value label (fits the narrow bars)
@@ -196,7 +196,7 @@ def plot_scalability():
     ax0.set_xticklabels(SCALE_LABELS, fontsize=11)
     ax0.set_xlabel("Map Scale (Area)", fontsize=12, fontweight='bold')
     ax0.set_ylabel("Global Makespan (steps, log)", fontsize=12, fontweight='bold')
-    ax0.set_title("(a) Absolute Makespan at Each Scale  ( ✕ = timeout / not completed )",
+    ax0.set_title(r"(a) Absolute makespan at each scale ($\times$ = timeout, not completed)",
                   fontsize=11, fontweight='bold', pad=8)
     ax0.yaxis.set_major_formatter(ticker.FuncFormatter(
         lambda x, _: (f"{x/1000:.0f}k" if x >= 1000 else f"{int(x)}")))
@@ -358,7 +358,7 @@ def plot_scalability():
     ax1.set_ylim(-0.05, n_rows * cell_h + 0.95)
     ax1.axis("off")
     ax1.set_title(
-        "(b) Relative makespan vs. SI-HMARL: green faster, white 1.0x, red slower or timeout",
+        "(b) Relative makespan vs. SI-HMARL",
         fontsize=10.5, fontweight='bold', pad=4,
     )
 
